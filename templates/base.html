@@ -25,8 +25,17 @@
                     </ul>
               
                     <div class="col-md-3 text-end">
-                      <button type="button" class="btn btn-outline-primary me-2">Login</button>
-                      <button type="button" class="btn btn-primary">Sign-up</button>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('logout') }}">
+                            <button type="button" class="btn btn-primary">Logout</button>
+                        </a>
+                        {% else %}
+                        <a href="/login">
+                            <button type="button" class="btn btn-outline-primary me-2">Login</button></a>
+                        <a href="/signup">
+                            <button type="button" class="btn btn-primary">Sign-Up</button>
+                        </a>
+                        {% endif %}
                     </div>
                 </header>
                 <main class="maine">
