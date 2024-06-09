@@ -32,26 +32,36 @@
           border-top-right-radius: 0;
         }
     </style>
-    
 </head>
-<body>
 <body class="d-flex align-items-center py-4 bg-body-tertiary">
     <main class="form-signin w-100 m-auto">
-        
-        <form method="POST" action="{{ url_for('login') }}">
-            <img class="mb-4" src="/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Картинка сайта" width="72" height="57">
-            <div class="form-floating">
-                <input class="form-control" id="floatingInput" placeholder="Username" type="text" id="username" name="username" required>
-                <label for="floatingInput">Username</label>
-            </div>
-            <div class="form-floating">
-                <input class="form-control" id="floatingPassword" placeholder="Password" type="password" id="password" name="password" required>
-                <label for="floatingPassword">Password</label>
-            </div><br>
-            <button class="btn btn-primary w-100 py-2" type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a></p>
+      <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag() }}
+        <img class="mb-4" src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="Картинка сайта" width="72" height="57">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+    
+        <div class="form-floating">
+            {{ form.username(class_='form-control', id='floatingInput', placeholder='Username') }}
+            <label for="floatingInput">Username</label>
+        </div><br>
+        <div class="form-floating">
+            {{ form.password(class_='form-control', id='floatingPassword', placeholder='Password') }}
+            <label for="floatingPassword">Password</label>
+        </div>
+    
+        <button class="btn btn-primary w-100 py-2" type="submit">Login</button>
+        <p class="mt-5 mb-3 text-body-secondary">@2024</p>
+      </form>
     </main>
-<script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
+

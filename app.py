@@ -1,6 +1,8 @@
 from flask import Flask, redirect, render_template, request, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from forms import SignupForm, LoginForm  # Импортируем формы из файла forms.py
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newflask.db'
@@ -24,6 +26,14 @@ class Post(db.Model):
     user = db.relationship('User', backref=db.backref('posts', lazy=True))
 
 
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    score = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+    
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -31,32 +41,34 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username, password=password).first()
-        if user:
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and check_password_hash(user.password, form.password.data):
             login_user(user)
+            flash('Logged in successfully.', 'success')
             return redirect(url_for('index'))
         else:
-            flash('Invalid username or password')
-    return render_template('login.html')
+            flash('Invalid username or password', 'danger')
+    return render_template('login.html', form=form)
+
+
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists')
+    form = SignupForm()
+    if form.validate_on_submit():
+        if User.query.filter_by(username=form.username.data).first():
+            flash('Username already exists', 'danger')
             return redirect(url_for('signup'))
-        new_user = User(username=username, password=password)
+        new_user = User(username=form.username.data, password=generate_password_hash(form.password.data))
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
+        flash('Registration successful! You are now logged in.', 'success')
         return redirect(url_for('index'))
-    return render_template('signup.html')
+    return render_template('signup.html', form=form)
 
 
 @app.route('/logout')
@@ -111,10 +123,20 @@ def about():
 @app.route("/index")
 @app.route('/')
 def index():
-    return render_template('index.html', title='Welcome to Movie Reviews')
+    return render_template('index.html')
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
     app.run(debug=True)
+
