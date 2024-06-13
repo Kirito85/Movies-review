@@ -1,4 +1,3 @@
-import os
 from flask import Flask, redirect, render_template, request, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -6,17 +5,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import SignupForm, LoginForm  # Импортируем формы из файла forms.py
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'mysecret')  # Убедитесь, что у вас есть секретный ключ
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newflask.db'
+app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,16 +25,19 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('posts', lazy=True))
 
+
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     score = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+    
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -48,6 +51,9 @@ def login():
         else:
             flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
+
+
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -64,11 +70,13 @@ def signup():
         return redirect(url_for('index'))
     return render_template('signup.html', form=form)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
 
 @app.route("/create", methods=['POST', 'GET'])
 @login_required
@@ -94,24 +102,29 @@ def create():
     else:
         return render_template('create.html')
 
+
 @app.route("/posts")
 def posts():
     posts = Post.query.all()
     return render_template('posts.html', posts=posts)
+
 
 @app.route("/post/<int:post_id>")
 def post_detail(post_id):
     post = Post.query.get_or_404(post_id)
     return render_template('post_detail.html', post=post)
 
+
 @app.route("/about")
 def about():
     return render_template('about.html')
+
 
 @app.route("/index")
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -121,7 +134,9 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
     app.run(debug=True)
+
