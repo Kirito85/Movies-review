@@ -9,8 +9,6 @@
     "routes": [
       {
         "src": "/(.*)",
-        "src": "/login(.*)",
-        "src": "/signup(.*)",
         "dest": "app.py"
       }
     ]
