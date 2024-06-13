@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import SignupForm, LoginForm  # Импортируем формы из файла forms.py
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://default:************@ep-nameless-mountain-a4rf4xz4.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///newflask.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
