@@ -18,6 +18,9 @@ all news
             <a href="{{ url_for('post_detail', post_id=post.id) }}">Read More
                <i class="fa fa-long-arrow-right"></i>
             </a>
+            {% for review in reviews %}
+                <a href="{{ url_for('review_detail', review_id=review.id) }}">Mark this news</a>
+            {% endfor %}
         </div>
     </div>
     {% endfor %}

@@ -1,0 +1,11 @@
+{%extends "base.html"%}
+
+{%block title%}
+Review
+{% endblock %}
+
+{% block main %}
+{% for post in posts %}
+    <h1>Review for {{ post.title }}</h1><br>
+{% endfor %}
+{% endblock %}

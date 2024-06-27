@@ -1,0 +1,13 @@
+{%extends "base.html"%}
+
+{%block title%}
+Review-create
+{% endblock %}
+
+{% block main %}
+<form method="post" class='form-control'>
+    <input type="text" name='title' placeholder="enter name of title" class='form-control'><br>
+    <input type="text" name="score" placeholder="enter name of score" class='form-control'><br>
+    <button class="btn btn-success" type="submit">create</button>
+</form>
+{% endblock %}

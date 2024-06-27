@@ -32,7 +32,8 @@ class Review(db.Model):
     score = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
-    
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    post = db.relationship('Post', backref=db.backref('reviews', lazy=True))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -103,16 +104,53 @@ def create():
         return render_template('create.html')
 
 
-@app.route("/posts")
+@app.route('/posts')
 def posts():
-    posts = Post.query.all()
-    return render_template('posts.html', posts=posts)
-
+    posts = Post.query.all()  # assuming you have a Post model
+    reviews = Review.query.all()  # assuming you have a Review model
+    return render_template('posts.html', posts=posts, reviews=reviews)
 
 @app.route("/post/<int:post_id>")
 def post_detail(post_id):
     post = Post.query.get_or_404(post_id)
     return render_template('post_detail.html', post=post)
+
+@app.route('/Review')
+def review():
+    review = Review.query.all()
+    return render_template("review.html", review=review)
+
+
+@app.route('/Review-create', methods=['POST', 'GET'])
+@login_required
+def review_create():
+    if request.method == 'POST':
+        title = request.form['title']
+        score = request.form['score']
+
+        if not title or not score:
+            flash('Title and text cannot be empty')
+            return redirect('/Review-create')
+
+        post = Review(title=title, score=score, user_id=current_user.id)
+
+        try:
+            db.session.add(post)
+            db.session.commit()
+            return redirect('/')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding post: {e}')
+            return redirect('/Review-create')
+    else:
+        return render_template('review_create.html')
+
+
+@app.route('/Review/<int:review_id>')
+def review_detail(review_id):
+    review = Review.query.get_or_404(review_id)
+    post = review.post
+    return render_template("review_detail.html", review=review, post=post)
 
 
 @app.route("/about")
