@@ -8,8 +8,8 @@
 
 <div class="col-md-6 item">
     <div class="item-in">
-        <h1>{{ review.title }}</h1>
-        <p>Score: {{ review.score }}</p>
+        <h2>Score: {{ review.score }}</h2>
+        <h3>{{ review.title }}</h3>
         <p>Post title: {{ post.title }}</p>
         <p>Posted by {{ post.user.username }}</p>
         <a href="{{ url_for('posts') }}">Back to all posts

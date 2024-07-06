@@ -32,8 +32,8 @@ class Review(db.Model):
     score = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    post = db.relationship('Post', backref=db.backref('reviews', lazy=True))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
+    post = db.relationship('Post', backref=db.backref('reviews', lazy=False))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -89,6 +89,12 @@ def create():
         if not title or not text:
             flash('Title and text cannot be empty')
             return redirect('/create')
+       
+        # Проверка на уникальность заголовка
+        existing_post = Post.query.filter_by(title=title).first()
+        if existing_post:
+            flash('A post with this title already exists', 'danger')
+            return redirect('/create')
 
         post = Post(title=title, text=text, user_id=current_user.id)
 
@@ -107,43 +113,50 @@ def create():
 @app.route('/posts')
 def posts():
     posts = Post.query.all()  # assuming you have a Post model
-    reviews = Review.query.all()  # assuming you have a Review model
-    return render_template('posts.html', posts=posts, reviews=reviews)
+    return render_template('posts.html', posts=posts)
 
 @app.route("/post/<int:post_id>")
 def post_detail(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post_detail.html', post=post)
-
-@app.route('/Review')
-def review():
-    review = Review.query.all()
-    return render_template("review.html", review=review)
+    reviews = Review.query.filter_by(post_id=post_id).all()
+    return render_template('post_detail.html', post=post, reviews=reviews)
 
 
-@app.route('/Review-create', methods=['POST', 'GET'])
+
+@app.route('/review/<int:post_id>')
+def review(post_id):
+    post = Post.query.get_or_404(post_id)
+    reviews = Review.query.filter_by(post_id=post_id).all()
+    return render_template('review.html', post=post, reviews=reviews)
+
+
+@app.route('/review-create/<int:post_id>', methods=['GET', 'POST'])
 @login_required
-def review_create():
+def review_create(post_id):
     if request.method == 'POST':
         title = request.form['title']
-        score = request.form['score']
+        score = int(request.form['score'])
 
-        if not title or not score:
-            flash('Title and text cannot be empty')
-            return redirect('/Review-create')
+        if not title or score < 0 or score > 10:
+            flash('Invalid title or score (must be between 0 and 10)', 'danger')
+            return redirect(url_for('review_create', post_id=post_id))
+    
+        score = min(score, 10)
 
-        post = Review(title=title, score=score, user_id=current_user.id)
+        review = Review(title=title, score=score, user_id=current_user.id, post_id=post_id)
 
         try:
-            db.session.add(post)
+            db.session.add(review)
             db.session.commit()
-            return redirect('/')
+            flash('Review added successfully.', 'success')
+            return redirect(url_for('posts'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error adding post: {e}')
-            return redirect('/Review-create')
+            flash(f'Error adding review: {e}', 'danger')
+            return redirect(url_for('review_create', post_id=post_id))
     else:
-        return render_template('review_create.html')
+        return render_template('review_create.html', post_id=post_id)
+
 
 
 @app.route('/Review/<int:review_id>')

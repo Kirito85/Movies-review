@@ -8,7 +8,6 @@ all news
 <h1>all news</h1><br>
 
 <div class="row">
-
     {% for post in posts %}
     <div class="col-md-6 item">
         <div class="item-in">
@@ -18,13 +17,19 @@ all news
             <a href="{{ url_for('post_detail', post_id=post.id) }}">Read More
                <i class="fa fa-long-arrow-right"></i>
             </a>
-            {% for review in reviews %}
-                <a href="{{ url_for('review_detail', review_id=review.id) }}">Mark this news</a>
-            {% endfor %}
+            {% if post.reviews %}
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <a href="{{ url_for('review', post_id=post.id) }}">See all reviews
+                    <i class="fa fa-long-arrow-right"></i>
+                </a>
+            {% endif %}
+                <a href="{{ url_for('review_create', post_id=post.id) }}">create reviews
+                    <i class="fa fa-long-arrow-right"></i>
+                </a>
+            </div>
         </div>
     </div>
     {% endfor %}
 </div>
 
 {% endblock %}
-

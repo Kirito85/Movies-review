@@ -1,11 +1,27 @@
-{%extends "base.html"%}
+{% extends "base.html" %}
 
-{%block title%}
-Review
+{% block title %}
+Reviews for {{ post.title }}
 {% endblock %}
 
 {% block main %}
-{% for post in posts %}
-    <h1>Review for {{ post.title }}</h1><br>
-{% endfor %}
+<h1>Reviews for {{ post.title }}</h1>
+
+<div class="row">
+    {% if reviews %}
+        {% for review in reviews %}
+        <div class="col-md-6 item">
+            <div class="item-in">
+                <h5>Score: {{ review.score }}</h5>
+                <h6>{{ review.title }}</h6>
+                <p>Author: {{ review.user.username }}</p>
+                <!-- Другие детали ревью -->
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No reviews found for this post.</p>
+    {% endif %}
+</div>
+
 {% endblock %}
