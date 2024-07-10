@@ -209,18 +209,9 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
-def update_alembic_version():
-    with db.engine.connect() as connection:
-        result = connection.execute(text("SELECT version_num FROM alembic_version")).fetchone()
-        current_version = result[0] if result else None
-
-        if current_version != '1c67f054e4eb':
-            connection.execute(text("UPDATE alembic_version SET version_num = '1c67f054e4eb'"))
-
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
-        update_alembic_version()  # Update alembic_version table if needed
 
     app.run(debug=True)
