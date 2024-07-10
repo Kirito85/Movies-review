@@ -3,21 +3,32 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import SignupForm, LoginForm  # Импортируем формы из файла forms.py
+from flask_migrate import Migrate
 import os
 
 
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL') or 'postgresql://kaito:1z2x3cQWEr@localhost:5432/newflask'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:1z2x3cQWEr@localhost/newflask')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '1z2x3cQWEr')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'user'
+    
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(256), unique=True, nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+    
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 
 class Post(db.Model):
@@ -65,12 +76,20 @@ def signup():
         if User.query.filter_by(username=form.username.data).first():
             flash('Username already exists', 'danger')
             return redirect(url_for('signup'))
+        if len(form.username.data) > 256:
+            flash('Username must be less than 256 characters.', 'danger')
+            return redirect(url_for('signup'))
+        
         new_user = User(username=form.username.data, password=generate_password_hash(form.password.data))
         db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
-        flash('Registration successful! You are now logged in.', 'success')
-        return redirect(url_for('index'))
+        try:
+            db.session.commit()
+            login_user(new_user)
+            flash('Registration successful! You are now logged in.', 'success')
+            return redirect(url_for('index'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Registration failed. Error: {str(e)}', 'danger')
     return render_template('signup.html', form=form)
 
 
