@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import SignupForm, LoginForm  # Импортируем формы из файла forms.py
 from flask_migrate import Migrate
+from sqlalchemy import text
 import os
 
 
@@ -17,12 +18,13 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 
+
+
+
 class User(UserMixin, db.Model):
-    __tablename__ = 'user'
-    
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(256), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
+    username = db.Column(db.String(300), unique=True, nullable=False)
+    password = db.Column(db.String(300), nullable=False)
     
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -76,8 +78,8 @@ def signup():
         if User.query.filter_by(username=form.username.data).first():
             flash('Username already exists', 'danger')
             return redirect(url_for('signup'))
-        if len(form.username.data) > 256:
-            flash('Username must be less than 256 characters.', 'danger')
+        if len(form.username.data) > 128:
+            flash('Username must be less than 128 characters.', 'danger')
             return redirect(url_for('signup'))
         
         new_user = User(username=form.username.data, password=generate_password_hash(form.password.data))
@@ -207,7 +209,18 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 
+def update_alembic_version():
+    with db.engine.connect() as connection:
+        result = connection.execute(text("SELECT version_num FROM alembic_version")).fetchone()
+        current_version = result[0] if result else None
+
+        if current_version != '1c67f054e4eb':
+            connection.execute(text("UPDATE alembic_version SET version_num = '1c67f054e4eb'"))
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
+        update_alembic_version()  # Update alembic_version table if needed
+
     app.run(debug=True)

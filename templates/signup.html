@@ -58,7 +58,11 @@
         <div class="form-floating">
             {{ form.password(class_='form-control', id='floatingPassword', placeholder='Password') }}
             <label for="floatingPassword">Password</label>
-        </div>
+        </div><br>
+        <div class="form-floating">
+          {{ form.confirm_password(class_='form-control', id='floatingPassword', placeholder=' Confirm Password') }}
+          <label for="floatingPassword">Confirm Password</label>
+      </div>
         <div class="form-check mb-3">
           <input class="form-check-input" type="checkbox" value="" id="rememberMe">
           <label class="form-check-label" for="rememberMe">

@@ -33,7 +33,7 @@ def upgrade():
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.alter_column('password',
-               existing_type=sa.VARCHAR(length=255),
+               existing_type=sa.VARCHAR(length=128),
                type_=sa.String(length=50),
                existing_nullable=False)
 
@@ -45,7 +45,7 @@ def downgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.alter_column('password',
                existing_type=sa.String(length=50),
-               type_=sa.VARCHAR(length=255),
+               type_=sa.VARCHAR(length=128),
                existing_nullable=False)
 
     with op.batch_alter_table('review', schema=None) as batch_op:
