@@ -10,7 +10,7 @@ import os
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgres://default:9Y5DUFhHNBdf@ep-autumn-frost-a2sxjgml-pooler.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:1z2x3cQWEr@localhost:5432/newflask')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '1z2x3cQWEr')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
