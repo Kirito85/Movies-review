@@ -10,8 +10,8 @@ import os
 
 
 app = Flask(__name__)
-app.config['POSTGRES_URL'] = os.getenv('POSTGRES_URL', 'postgres://default:9Y5DUFhHNBdf@ep-autumn-frost-a2sxjgml-pooler.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require')
-app.config['POSTGRES_PASSWORD'] = os.getenv('POSTGRES_PASSWORD', '9Y5DUFhHNBdf')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgres://default:9Y5DUFhHNBdf@ep-autumn-frost-a2sxjgml-pooler.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '1z2x3cQWEr')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
