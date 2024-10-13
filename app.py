@@ -7,11 +7,10 @@ from flask_migrate import Migrate
 from sqlalchemy import text
 import os
 
-
-
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:1z2x3cQWEr@localhost:5432/newflask')
+app.config['SQLALCHEMY_DATABASE_URI'] =  "postgresql://postgres.tawlobvcmbxcgmjyqdrh:1z2x3cQWE!r!^-^@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '1z2x3cQWEr')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
