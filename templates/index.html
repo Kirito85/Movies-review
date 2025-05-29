@@ -16,4 +16,20 @@ Home
     <p>if u are intrested in programer thier web site click <a href="/about">
         <button type="button" class="btn btn-outline-primary me-2">About Us</button>
     </a></p>
+    <input type="text" id="searchInput" placeholder="Поиск обзоров..." onkeyup="searchReviews()">
+    
+    <ul id="searchResults"></ul>
+    <script>
+        async function searchReviews() {
+            let query = document.getElementById("searchInput").value;
+            if (query.length < 2) return;
+    
+            let response = await fetch(`/search?q=${query}`);
+            let reviews = await response.json();
+    
+            let list = document.getElementById("searchResults");
+            list.innerHTML = reviews.map(r => `<li>${r.title}</li>`).join('');
+        }
+    </script>
+
 {% endblock %}

@@ -6,15 +6,25 @@ from forms import SignupForm, LoginForm  # Импортируем формы и�
 from flask_migrate import Migrate
 from sqlalchemy import text
 import os
+from flask import jsonify
+from flask_msearch import Search
+
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] =  "postgresql://postgres.tawlobvcmbxcgmjyqdrh:1z2x3cQWE!r!^-^@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
+app.config['SQLALCHEMY_DATABASE_URI'] =  "postgresql://postgres.ulxfrwfhlemmtskuyujd:1z2x3cQWE!r!^-^@aws-0-eu-central-1.pooler.supabase.com:6543/postgres"
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '1z2x3cQWEr')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MSEARCH_INDEX_NAME'] = 'msearch'
+app.config['MSEARCH_BACKEND'] = 'whoosh'
+app.config['MSEARCH_ENABLE'] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+search = Search()
+search.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
 
 
 
@@ -38,6 +48,7 @@ class Post(db.Model):
     text = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('posts', lazy=True))
+    __searchable__ = ['title']
 
 
 class Review(db.Model):
@@ -48,6 +59,7 @@ class Review(db.Model):
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
     post = db.relationship('Post', backref=db.backref('reviews', lazy=False))
+    
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -188,6 +200,16 @@ def review_detail(review_id):
     return render_template("review_detail.html", review=review, post=post)
 
 
+@app.route("/search", methods=["GET"])
+def search_reviews():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify([])  # Возвращаем пустой список, если запрос пуст
+
+    results = Post.query.msearch(query, fields=["title"], limit=5).all()
+    return jsonify([{"id": r.id, "title": r.title} for r in results])
+
+
 @app.route("/about")
 def about():
     return render_template('about.html')
@@ -211,6 +233,7 @@ def internal_server_error(e):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Create database tables
+        db.create_all()
+        search.create_index(Update=True) 
 
     app.run(debug=True)
